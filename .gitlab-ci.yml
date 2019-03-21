@@ -1,0 +1,112 @@
+stages:
+  - before_stage
+  - test
+  - build
+  - export
+
+variables:
+  LC_ALL: "en_US.UTF-8"
+  LANG: "en_US.UTF-8"
+
+before_script:
+  - set -x
+  - echo "Started"
+  
+after_script:
+  - set +x
+  - echo "Finished."
+
+cache:
+  paths:
+    - Pods
+    - build/derived-data
+
+before_stage:
+  stage: before_stage
+  script: pod update
+  tags:
+    - ios
+
+### ---- TESTS
+
+test_project:
+  stage: test
+  script: fastlane run_tests_project
+  dependencies: []
+  tags: 
+    - ios 
+  only: 
+    - development
+    - stage
+    - master
+
+### ---- BUILDS
+
+build_dev:
+  stage: build
+  script: fastlane build_dev
+  artifacts:
+    name: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}-${CI_JOB_NAME}"
+    paths:
+      - Artifacts/TestApp-Dev.ipa
+    expire_in: 1 month
+  tags: 
+    - ios
+  only: 
+    - development
+
+build_stage:
+  stage: build
+  script: fastlane build_stage
+  artifacts:
+    name: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}-${CI_JOB_NAME}"
+    paths:
+      - Artifacts/TestApp-Stage.ipa
+    expire_in: 1 month
+  tags: 
+    - ios
+  only: 
+    - stage
+
+build_release:
+  stage: build
+  script: fastlane build_release
+  artifacts:
+    name: "${CI_PROJECT_NAME}-${CI_PIPELINE_ID}-${CI_JOB_NAME}"
+    paths:
+      - Artifacts/TestApp.ipa
+    expire_in: 1 month
+  tags: 
+    - ios
+  only: 
+    - master
+
+### --- EXPORT
+
+export_dev:
+  stage: export
+  script: fastlane export_dev
+  tags: 
+    - ios
+  only: 
+    - development
+
+export_stage:
+  stage: export
+  script: fastlane export_stage
+  tags: 
+    - ios
+  only: 
+    - stage
+
+export_release:
+  stage: export
+  script: fastlane export_release
+  tags: 
+    - ios
+  only: 
+    - master
+
+
+
+
